@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VTChive · 直播備份系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="mobile-topbar">
+      <button id="btn-menu" aria-label="選單">&#9776;</button>
+      <span class="mobile-title">VTChive</span>
+      <div class="mobile-monitor-dot" id="mobile-monitor-dot"></div>
+    </header>
+    <aside id="sidebar">
+      <div class="brand">
+        <span class="brand-icon">▶</span>
+        <div>
+          <div class="brand-name">VTChive</div>
+          <div class="brand-sub">v1.001</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">◈</span> 儀表板
+        </button>
+        <button class="nav-item" data-page="archives">
+          <span class="nav-icon">⊟</span> 備份紀錄
+        </button>
+        <button class="nav-item" data-page="channels">
+          <span class="nav-icon">⊕</span> 監控頻道
+        </button>
+        <button class="nav-item" data-page="settings">
+          <span class="nav-icon">⊛</span> 設定
+        </button>
+        <button class="nav-item" data-page="logs">
+          <span class="nav-icon">⊟</span> 即時日誌
+        </button>
+        <button class="nav-item" data-page="changelog">
+          <span class="nav-icon">◎</span> 更新日誌
+        </button>
+      </nav>
+
+      <div class="monitor-badge" id="monitor-badge">
+        <span class="pulse"></span>
+        <span id="monitor-status-text">監控中</span>
+      </div>
+    </aside>
+
+    <main id="main">
+      <section id="page-dashboard" class="page active">
+        <h1 class="page-title">儀表板</h1>
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card" data-status="DOWNLOADING">
+            <div class="stat-label">下載中</div>
+            <div class="stat-value" id="stat-downloading">—</div>
+          </div>
+          <div class="stat-card" data-status="WAIT">
+            <div class="stat-label">等待中</div>
+            <div class="stat-value" id="stat-wait">—</div>
+          </div>
+          <div class="stat-card stat-done" data-status="DONE">
+            <div class="stat-label">已完成</div>
+            <div class="stat-value" id="stat-done">—</div>
+          </div>
+          <div class="stat-card stat-failed" data-status="FAILED">
+            <div class="stat-label">失敗</div>
+            <div class="stat-value" id="stat-failed">—</div>
+          </div>
+        </div>
+
+        <div class="section-row">
+          <div class="panel panel-monitor">
+            <div class="panel-header">
+              <span>監控狀態</span>
+              <button class="btn-sm" id="btn-trigger">立即觸發</button>
+            </div>
+            <div class="monitor-info">
+              <div class="info-row"><span class="info-key">運行中</span><span id="m-running">—</span></div>
+              <div class="info-row"><span class="info-key">上次檢查</span><span id="m-last">—</span></div>
+              <div class="info-row"><span class="info-key">下次檢查</span><span id="m-next">—</span></div>
+              <div class="info-row"><span class="info-key">活躍下載</span><span id="m-active">—</span></div>
+            </div>
+          </div>
+
+          <div class="panel panel-recent">
+            <div class="panel-header"><span>最近活動</span></div>
+            <div class="recent-logs" id="recent-logs"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-archives" class="page">
+        <div class="page-header-row">
+          <h1 class="page-title">備份紀錄</h1>
+          <div class="filter-bar">
+            <input class="input-search" type="text" id="archive-search" placeholder="搜尋標題或頻道…" />
+            <select class="input-select" id="archive-status-filter">
+              <option value="">全部狀態</option>
+              <option value="WAIT">等待中</option>
+              <option value="DOWNLOADING">下載中</option>
+              <option value="DONE">已完成</option>
+              <option value="FAILED">失敗</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="archives-table">
+            <thead>
+              <tr>
+                <th>直播ID</th>
+                <th>標題</th>
+                <th>頻道</th>
+                <th>主題</th>
+                <th>開始時間</th>
+                <th>狀態</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="archives-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="archives-pagination"></div>
+      </section>
+
+      <section id="page-channels" class="page">
+        <div class="page-header-row">
+          <h1 class="page-title">監控頻道</h1>
+          <div class="add-channel-form">
+            <input class="input-text" type="text" id="new-channel-id"
+              placeholder="Holodex 頻道 ID (UC…)" />
+            <button class="btn-primary" id="btn-add-channel">新增頻道</button>
+          </div>
+        </div>
+        <div class="channels-grid" id="channels-grid"></div>
+      </section>
+
+      <section id="page-settings" class="page">
+        <div class="page-header-row">
+          <h1 class="page-title">設定</h1>
+          <button class="btn-primary" id="btn-save-settings">儲存設定</button>
+        </div>
+        <div class="settings-form" id="settings-form"></div>
+      </section>
+
+      <section id="page-logs" class="page">
+        <div class="page-header-row">
+          <h1 class="page-title">即時日誌</h1>
+          <button class="btn-sm" id="btn-clear-logs">清除</button>
+        </div>
+        <div class="log-terminal" id="log-terminal">
+          <div class="log-empty">等待日誌訊息…</div>
+        </div>
+      </section>
+      <section id="page-changelog" class="page">
+        <h1 class="page-title">更新日誌</h1>
+        <div class="changelog-list">
+
+          <div class="changelog-entry">
+            <div class="changelog-header">
+              <span class="changelog-version">v1.001</span>
+              <span class="changelog-date">2026-03-08</span>
+              <span class="changelog-tag tag-init">初始版本</span>
+            </div>
+            <ul class="changelog-items">
+              <li>優化前端界面與使用者體驗</li>
+              <li>改進即時日誌後端處理</li>
+              <li>增加"標記完成"按鈕強制完成已失敗的紀錄</li>
+            </ul>
+          </div>
+
+          <div class="changelog-entry">
+            <div class="changelog-header">
+              <span class="changelog-version">v1.000</span>
+              <span class="changelog-date">2026-03-08</span>
+              <span class="changelog-tag tag-init">優化更新</span>
+            </div>
+            <ul class="changelog-items">
+              <li>VTChive 直播備份系統上線</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="sidebar-overlay"></div>
+  <div id="toast-container"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+*.mkv
+*.mp4
+*.pyc
+*.pyo
+*.tar
+*.ts
+.env
+.git/
+.gitignore
+.venv/
+README.md
+__pycache__/
+vtchive/
