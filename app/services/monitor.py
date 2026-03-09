@@ -73,7 +73,6 @@ class MonitorService:
     async def _poll(self) -> None:
         self.last_checked = datetime.now(timezone.utc)
         self.next_check = None
-        await log.info("開始檢查直播")
 
         channel_ids = await self._load_channel_ids()
         if not channel_ids:
@@ -85,7 +84,7 @@ class MonitorService:
         window_after = await get_int("schedule_window_after", 12)
 
         streams = await holodex.get_live_streams(channel_ids)
-        await log.info(f"Holodex 回傳 {len(streams)} 個直播項目")
+        await log.info(f"發現 {len(streams)} 個直播項目")
 
         channel_id_set = set(channel_ids)
         now = datetime.now(timezone.utc)

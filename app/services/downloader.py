@@ -128,10 +128,14 @@ async def _run_ytdlp(vid: str) -> int:
         stderr=asyncio.subprocess.PIPE,
     )
     _, stderr = await proc.communicate()
+    returncode = proc.returncode
 
-    if proc.returncode != 0 and stderr:
+    if returncode != 0 and stderr:
         err_text = stderr.decode(errors="replace").strip()
-        await log.warning(f"yt-dlp stderr [{vid}]: {err_text[:500]}", vid=vid)
+        if "did not get any data blocks" in err_text.lower():
+            returncode = 0  # Stream ended
+        else:
+            await log.warning(f"yt-dlp stderr [{vid}]: {err_text[:500]}", vid=vid)
 
     async with acquire() as conn:
         await conn.execute(
