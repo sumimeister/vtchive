@@ -67,7 +67,13 @@ async def notify_status(
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
-    payload: dict[str, Any] = {"embeds": [embed]}
+    payload: dict[str, Any] = {
+        "target": "guild",
+        "target_id": guild_id,
+        "sub_target_id": channel_id,
+        "embed": embed,
+        "time": datetime.now(timezone.utc).isoformat(),
+    }
 
     try:
         timeout = aiohttp.ClientTimeout(total=10)
