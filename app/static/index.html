@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VTChive · 直播備份系統</title>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,10 +22,10 @@
       </header>
       <aside id="sidebar">
         <div class="brand">
-          <span class="brand-icon">▶</span>
+          <img class="brand-icon" src="/static/logo.png" alt="VTChive logo" />
           <div>
             <div class="brand-name">VTChive</div>
-            <div class="brand-sub">v1.002</div>
+            <div class="brand-sub">v1.010</div>
           </div>
         </div>
 
@@ -152,14 +153,23 @@
           <div class="changelog-list">
             <div class="changelog-entry">
               <div class="changelog-header">
-                <span class="changelog-version">v1.002</span>
-                <span class="changelog-date">2026-03-09</span>
-                <span class="changelog-tag">優化更新</span>
+                <span class="changelog-version">v1.010</span>
+                <span class="changelog-date">2026-03-10</span>
               </div>
               <ul class="changelog-items">
-                <li>忽略 Did not get any data blocks 錯誤</li>
-                <li>減少日誌數量</li>
-                <li>改進介面配色</li>
+                <li>增加 Discord 通知功能</li>
+                <li>調整下載參數</li>
+              </ul>
+            </div>
+
+            <div class="changelog-entry">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.002</span>
+                <span class="changelog-date">2026-03-09</span>
+              </div>
+              <ul class="changelog-items">
+                <li>優化前端界面與使用者體驗</li>
+                <li>改進日誌邏輯</li>
               </ul>
             </div>
 
@@ -167,12 +177,11 @@
               <div class="changelog-header">
                 <span class="changelog-version">v1.001</span>
                 <span class="changelog-date">2026-03-08</span>
-                <span class="changelog-tag">優化更新</span>
               </div>
               <ul class="changelog-items">
                 <li>優化前端界面與使用者體驗</li>
                 <li>改進即時日誌後端處理</li>
-                <li>增加"標記完成"按鈕強制完成已失敗的紀錄</li>
+                <li>增加"標記完成"按鈕，可將失敗的紀錄標記為完成</li>
               </ul>
             </div>
 

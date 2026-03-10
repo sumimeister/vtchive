@@ -69,7 +69,7 @@ body {
 }
 
 .brand-icon {
-  font-size: 24px;
+  width: 32px;
   color: var(--accent);
   line-height: 1;
 }

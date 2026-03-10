@@ -10,6 +10,7 @@ from typing import Optional
 
 import app.broadcaster as log
 from app.database import acquire
+from app.services import discord as _discord
 from app.services import holodex
 from app.settings_store import get_int
 
@@ -72,7 +73,7 @@ async def download(vid: str) -> None:
         try:
             returncode = await _run_ytdlp(vid)
         except Exception as exc:
-            await log.error(f"下載 {vid} 發生例外：{exc}", vid=vid)
+            await log.error(f"下載 {vid} 發生例外：{exc!r}", vid=vid)
             await _set_status(vid, "FAILED", error_message=str(exc))
             _active.discard(vid)
             return
@@ -104,20 +105,30 @@ async def _run_ytdlp(vid: str) -> int:
     output_path_noext = os.path.join(OUTPUT_ROOT, channel_dir, filename)
     output_template = output_path_noext + ".%(ext)s"
 
+    # Check Holodex for current stream status to decide whether to wait
+    video_info = await holodex.get_video(vid)
+    is_upcoming = video_info is not None and video_info.get("status") == "upcoming"
+
     url = f"https://www.youtube.com/watch?v={vid}"
     cmd = [
         YTDLP_PATH,
-        "--js-runtimes", "node",
+        "--js-runtimes",
+        "node",
         "--live-from-start",
         "--ignore-config",
-        "--merge-output-format", "mkv",
+        "--merge-output-format",
+        "mkv",
         "--prefer-free-formats",
         "--embed-thumbnail",
         "--embed-metadata",
         "--no-part",
-        "-f", "bestvideo*+bestaudio/best",
-        "-o", output_template,
+        "-f",
+        "bestvideo*+bestaudio/best",
+        "-o",
+        output_template,
     ]
+    if is_upcoming:
+        cmd += ["--wait-for-video", "60"]
     cmd.append(url)
 
     await log.info(f"執行指令: {' '.join(cmd)}", vid=vid)
@@ -140,7 +151,8 @@ async def _run_ytdlp(vid: str) -> int:
     async with acquire() as conn:
         await conn.execute(
             "UPDATE archives SET output_path = $1 WHERE vid = $2",
-            output_path_noext, vid,
+            output_path_noext,
+            vid,
         )
 
     return proc.returncode
@@ -164,9 +176,31 @@ async def _on_success(vid: str) -> None:
         await conn.execute(
             "UPDATE archives SET status = 'DONE', end_at = $1, duration = $2, "
             "error_message = NULL, updated_at = NOW() WHERE vid = $3",
-            end_at, duration, vid,
+            end_at,
+            duration,
+            vid,
         )
     await log.info(f"下載完成 {vid}", vid=vid)
+    await _notify(vid, "DONE")
+
+
+async def _notify(vid: str, status: str, error_message: Optional[str] = None) -> None:
+    try:
+        async with acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT title, channel_name, start_at FROM archives WHERE vid = $1", vid
+            )
+        if row:
+            await _discord.notify_status(
+                vid=vid,
+                title=row["title"],
+                channel_name=row["channel_name"],
+                start_at=row["start_at"],
+                status=status,
+                error_message=error_message,
+            )
+    except Exception as exc:
+        logger.warning("Discord notify failed for %s: %r", vid, exc)
 
 
 async def _set_status(
@@ -178,8 +212,11 @@ async def _set_status(
         await conn.execute(
             "UPDATE archives SET status = $1, error_message = $2, updated_at = NOW() "
             "WHERE vid = $3",
-            status, error_message, vid,
+            status,
+            error_message,
+            vid,
         )
+    await _notify(vid, status, error_message)
 
 
 async def retry(vid: str) -> None:

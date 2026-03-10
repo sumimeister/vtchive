@@ -69,7 +69,10 @@ INSERT INTO settings (key, value, description) VALUES
     ('max_concurrent_downloads', '3',                  'Maximum simultaneous ytarchive processes'),
     ('schedule_window_before',   '1',                  'Ignore streams scheduled more than N days ahead'),
     ('schedule_window_after',    '12',                 'Ignore streams that started more than N hours ago'),
-    ('timezone',                 'Asia/Taipei',        'Display timezone')
+    ('timezone',                 'Asia/Taipei',        'Display timezone'),
+    ('discord_webhook_url',      '',                   'Discord bot webhook URL'),
+    ('discord_guild_id',         '',                   'Discord guild ID'),
+    ('discord_channel_id',       '',                   'Discord channel ID')
 ON CONFLICT DO NOTHING;
 """
 

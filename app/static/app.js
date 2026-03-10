@@ -194,7 +194,7 @@ async function loadMonitorStatus() {
 
 async function loadRecentLogs() {
   try {
-    const logs = await apiFetch('/api/logs?limit=20');
+    const logs = await apiFetch('/api/logs?limit=80');
     const container = document.getElementById('recent-logs');
     if (!logs.length) {
       container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px 0">尚無日誌</div>';
@@ -446,9 +446,12 @@ const SETTING_LABELS = {
   allowed_topics: '允許的主題',
   monitor_interval: '監控間隔（秒）',
   max_concurrent_downloads: '最大並行下載數',
-  schedule_window_before: '預排提前天數',
+  schedule_window_before: '預排提前時數',
   schedule_window_after: '過時時數',
   timezone: '時區',
+  discord_webhook_url: 'Discord Webhook 網址',
+  discord_guild_id: 'Discord 伺服器 ID',
+  discord_channel_id: 'Discord 頻道 ID',
 };
 
 async function loadSettings() {

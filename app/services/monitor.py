@@ -10,6 +10,7 @@ from typing import Optional
 
 import app.broadcaster as log
 from app.database import acquire
+from app.services import discord as _discord
 from app.services import downloader
 from app.services import holodex
 from app.settings_store import get_int
@@ -32,6 +33,7 @@ class MonitorService:
         self._stop_event.set()
 
     async def trigger_now(self) -> None:
+        await log.info("已手動立即觸發輪詢")
         self._trigger_event.set()
 
 
@@ -44,7 +46,7 @@ class MonitorService:
             except asyncio.CancelledError:
                 break
             except Exception as exc:
-                await log.error(f"監控輪詢發生例外：{exc}")
+                await log.error(f"監控輪詢發生例外：{exc!r}")
 
             interval = await get_int("monitor_interval", 300)
             self.next_check = datetime.now(timezone.utc) + timedelta(seconds=interval)
@@ -84,7 +86,6 @@ class MonitorService:
         window_after = await get_int("schedule_window_after", 12)
 
         streams = await holodex.get_live_streams(channel_ids)
-        await log.info(f"發現 {len(streams)} 個直播項目")
 
         channel_id_set = set(channel_ids)
         now = datetime.now(timezone.utc)
@@ -95,7 +96,7 @@ class MonitorService:
                 channel_id_set=channel_id_set,
                 allowed_topics=allowed_topics,
                 now=now,
-                window_before_days=window_before,
+                window_before_hours=window_before,
                 window_after_hours=window_after,
             )
 
@@ -107,7 +108,7 @@ class MonitorService:
         channel_id_set: set[str],
         allowed_topics: list[str],
         now: datetime,
-        window_before_days: int,
+        window_before_hours: int,
         window_after_hours: int,
     ) -> None:
         vid = stream.get("id", "")
@@ -132,7 +133,7 @@ class MonitorService:
         except ValueError:
             return
 
-        if now < start_at - timedelta(days=window_before_days):
+        if now < start_at - timedelta(hours=window_before_hours):
             return
         if now > start_at + timedelta(hours=window_after_hours):
             return
@@ -148,6 +149,16 @@ class MonitorService:
                 f"{stream.get('title', '')[:40]} ({vid})",
                 vid=vid,
             )
+            try:
+                await _discord.notify_status(
+                    vid=vid,
+                    title=stream.get("title") or vid,
+                    channel_name=channel.get("name") or channel.get("id", "unknown"),
+                    start_at=start_at,
+                    status="WAIT",
+                )
+            except Exception as exc:
+                logger.warning("Discord notify failed for %s: %r", vid, exc)
             asyncio.create_task(downloader.download(vid))
 
     async def _resume_waiting(self) -> None:
