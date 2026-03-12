@@ -153,7 +153,8 @@ class MonitorService:
                 await _discord.notify_status(
                     vid=vid,
                     title=stream.get("title") or vid,
-                    channel_name=channel.get("name") or channel.get("id", "unknown"),
+                    channel_name=channel.get("name", "unknown"),
+                    channel_id=channel.get("id", "unknown"),
                     start_at=start_at,
                     status="WAIT",
                 )
@@ -165,7 +166,7 @@ class MonitorService:
         active = downloader.active_vids()
         async with acquire() as conn:
             rows = await conn.fetch(
-                "SELECT vid FROM archives WHERE status = 'WAIT' AND vid != ALL($1::text[])",
+                "SELECT vid FROM archives WHERE status IN ('WAIT', 'PENDING') AND vid != ALL($1::text[])",
                 list(active),
             )
         for row in rows:

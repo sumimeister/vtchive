@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    title="VTChive",
+    title="VTchive",
     description="YouTube Live-stream Archiver with Holodex monitoring",
     version="2.0.0",
     lifespan=lifespan,

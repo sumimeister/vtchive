@@ -209,6 +209,11 @@ body {
 .page-header-row .page-title {
   margin-bottom: 0;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .stats-grid {
   display: grid;
@@ -402,6 +407,7 @@ body {
   color: var(--text-primary);
   border-bottom: 1px solid var(--bg-border);
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .data-table tbody tr:last-child td {
@@ -449,11 +455,16 @@ td.time-cell {
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .badge-wait {
   background: rgba(245, 166, 35, 0.15);
   color: var(--warn);
+}
+.badge-pending {
+  background: rgba(255, 77, 109, 0.15);
+  color: var(--text-warn);
 }
 .badge-downloading {
   background: rgba(77, 166, 255, 0.15);
@@ -494,6 +505,7 @@ td.time-cell {
   cursor: pointer;
   transition: all 0.15s;
   font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 .btn-icon:hover {
@@ -779,6 +791,29 @@ select.input-select {
   opacity: 0.88;
 }
 .btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-muted {
+  background: var(--bg-elevated);
+  border: 1px solid var(--bg-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-muted:hover {
+  opacity: 0.88;
+}
+.btn-muted:active {
   transform: scale(0.97);
 }
 

@@ -34,9 +34,16 @@ async def list_archives(
     idx = 1
 
     if status:
-        conditions.append(f"status = ${idx}")
-        params.append(status.upper())
-        idx += 1
+        statuses = [s.strip().upper() for s in status.split(",") if s.strip()]
+        if len(statuses) == 1:
+            conditions.append(f"status = ${idx}")
+            params.append(statuses[0])
+            idx += 1
+        else:
+            placeholders = ", ".join(f"${idx + i}" for i in range(len(statuses)))
+            conditions.append(f"status IN ({placeholders})")
+            params.extend(statuses)
+            idx += len(statuses)
     if channel_id:
         conditions.append(f"channel_id = ${idx}")
         params.append(channel_id)

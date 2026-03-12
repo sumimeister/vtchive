@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VTChive · 直播備份系統</title>
+    <title>VTchive · 直播備份系統</title>
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/static/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,15 +18,15 @@
     <div id="app">
       <header id="mobile-topbar">
         <button id="btn-menu" aria-label="選單">&#9776;</button>
-        <span class="mobile-title">VTChive</span>
+        <span class="mobile-title">VTchive</span>
         <div class="mobile-monitor-dot" id="mobile-monitor-dot"></div>
       </header>
       <aside id="sidebar">
         <div class="brand">
-          <img class="brand-icon" src="/static/logo.png" alt="VTChive logo" />
+          <img class="brand-icon" src="/static/logo.png" alt="VTchive logo" />
           <div>
-            <div class="brand-name">VTChive</div>
-            <div class="brand-sub">v1.010</div>
+            <div class="brand-name">VTchive</div>
+            <div class="brand-sub">v1.011</div>
           </div>
         </div>
 
@@ -52,7 +53,7 @@
               <div class="stat-label">下載中</div>
               <div class="stat-value" id="stat-downloading">—</div>
             </div>
-            <div class="stat-card" data-status="WAIT">
+            <div class="stat-card" data-status="WAIT,PENDING">
               <div class="stat-label">等待中</div>
               <div class="stat-value" id="stat-wait">—</div>
             </div>
@@ -94,7 +95,7 @@
               <input class="input-search" type="text" id="archive-search" placeholder="搜尋標題或頻道…" />
               <select class="input-select" id="archive-status-filter">
                 <option value="">全部狀態</option>
-                <option value="WAIT">等待中</option>
+                <option value="WAIT,PENDING">等待中</option>
                 <option value="DOWNLOADING">下載中</option>
                 <option value="DONE">已完成</option>
                 <option value="FAILED">失敗</option>
@@ -134,7 +135,10 @@
         <section id="page-settings" class="page">
           <div class="page-header-row">
             <h1 class="page-title">設定</h1>
-            <button class="btn-primary" id="btn-save-settings">儲存設定</button>
+            <div class="header-actions">
+              <button class="btn-muted" id="btn-test-webhook">測試 Webhook</button>
+              <button class="btn-primary" id="btn-save-settings">儲存設定</button>
+            </div>
           </div>
           <div class="settings-form" id="settings-form"></div>
         </section>
@@ -153,12 +157,23 @@
           <div class="changelog-list">
             <div class="changelog-entry">
               <div class="changelog-header">
+                <span class="changelog-version">v1.011</span>
+                <span class="changelog-date">2026-03-12</span>
+              </div>
+              <ul class="changelog-items">
+                <li>優化前端界面與使用者體驗</li>
+                <li>重新設計 Discord 通知格式</li>
+              </ul>
+            </div>
+
+            <div class="changelog-entry">
+              <div class="changelog-header">
                 <span class="changelog-version">v1.010</span>
                 <span class="changelog-date">2026-03-10</span>
               </div>
               <ul class="changelog-items">
                 <li>增加 Discord 通知功能</li>
-                <li>調整下載參數</li>
+                <li>優化下載流程</li>
               </ul>
             </div>
 
@@ -192,7 +207,7 @@
                 <span class="changelog-tag">初始版本</span>
               </div>
               <ul class="changelog-items">
-                <li>VTChive 直播備份系統上線</li>
+                <li>VTchive 直播備份系統上線</li>
               </ul>
             </div>
           </div>

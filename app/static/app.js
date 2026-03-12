@@ -44,8 +44,8 @@ function fmtTime(iso) {
 
 function statusBadge(status) {
   const map = {
-    WAIT: ['badge-wait', '等待中'],
-    PENDING: ['badge-wait', '等待中'],
+    WAIT: ['badge-wait', '已排定'],
+    PENDING: ['badge-pending', '等待中'],
     DOWNLOADING: ['badge-downloading', '下載中'],
     DONE: ['badge-done', '完成'],
     FAILED: ['badge-failed', '失敗'],
@@ -153,8 +153,8 @@ async function loadDashboard() {
 async function loadStats() {
   try {
     const s = await apiFetch('/api/archives/stats');
-    document.getElementById('stat-downloading').textContent = s.downloading + s.pending;
-    document.getElementById('stat-wait').textContent = s.wait;
+    document.getElementById('stat-downloading').textContent = s.downloading;
+    document.getElementById('stat-wait').textContent = s.wait + s.pending;
     document.getElementById('stat-done').textContent = s.done;
     document.getElementById('stat-failed').textContent = s.failed;
   } catch (e) {
@@ -194,7 +194,7 @@ async function loadMonitorStatus() {
 
 async function loadRecentLogs() {
   try {
-    const logs = await apiFetch('/api/logs?limit=80');
+    const logs = await apiFetch('/api/logs?limit=50');
     const container = document.getElementById('recent-logs');
     if (!logs.length) {
       container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px 0">尚無日誌</div>';
@@ -482,6 +482,21 @@ function renderSettings(settings) {
     )
     .join('');
 }
+
+document.getElementById('btn-test-webhook').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-test-webhook');
+  btn.disabled = true;
+  btn.textContent = '發送中…';
+  try {
+    await apiFetch('/api/settings/test-webhook', { method: 'POST' });
+    toast('測試訊息已發送，請確認 Discord 頻道');
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '測試 Webhook';
+  }
+});
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
   const inputs = document.querySelectorAll('#settings-form input[data-key]');

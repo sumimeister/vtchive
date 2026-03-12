@@ -60,6 +60,27 @@ def _truncate(text: str, max_width: int = 60) -> str:
     return out.rstrip() + "…"
 
 
+async def _wait_until_live(vid: str) -> None:
+    await _set_status(vid, "PENDING")
+    poll_interval = 60  # seconds
+    await log.info(f"等待直播開始 ({vid})", vid=vid)
+    while True:
+        video = await holodex.get_video(vid)
+        if video is None:
+            await log.warning(f"Holodex 查無影片 {vid}，將繼續等待", vid=vid)
+        else:
+            status = video.get("status", "")
+            if status == "live":
+                await log.info(f"直播已開始 ({vid})，準備下載", vid=vid)
+                return
+            elif status in ("past", "missing"):  # noqa: RET505
+                raise RuntimeError(
+                    f"Stream {vid} ended or was cancelled before download started "
+                    f"(Holodex status: {status})"
+                )
+        await asyncio.sleep(poll_interval)
+
+
 async def download(vid: str) -> None:
     if vid in _active:
         return
@@ -67,6 +88,17 @@ async def download(vid: str) -> None:
     sem = await _get_semaphore()
     async with sem:
         _active.add(vid)
+
+        try:
+            video_info = await holodex.get_video(vid)
+            if video_info is not None and video_info.get("status") == "upcoming":
+                await _wait_until_live(vid)
+        except Exception as exc:
+            await log.error(f"等待直播 {vid} 失敗：{exc!r}", vid=vid)
+            await _set_status(vid, "FAILED", error_message=str(exc))
+            _active.discard(vid)
+            return
+
         await _set_status(vid, "DOWNLOADING")
         await log.info(f"開始下載 {vid}", vid=vid)
 
@@ -105,10 +137,6 @@ async def _run_ytdlp(vid: str) -> int:
     output_path_noext = os.path.join(OUTPUT_ROOT, channel_dir, filename)
     output_template = output_path_noext + ".%(ext)s"
 
-    # Check Holodex for current stream status to decide whether to wait
-    video_info = await holodex.get_video(vid)
-    is_upcoming = video_info is not None and video_info.get("status") == "upcoming"
-
     url = f"https://www.youtube.com/watch?v={vid}"
     cmd = [
         YTDLP_PATH,
@@ -127,8 +155,6 @@ async def _run_ytdlp(vid: str) -> int:
         "-o",
         output_template,
     ]
-    if is_upcoming:
-        cmd += ["--wait-for-video", "60"]
     cmd.append(url)
 
     await log.info(f"執行指令: {' '.join(cmd)}", vid=vid)
@@ -188,13 +214,14 @@ async def _notify(vid: str, status: str, error_message: Optional[str] = None) ->
     try:
         async with acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT title, channel_name, start_at FROM archives WHERE vid = $1", vid
+                "SELECT title, channel_name, channel_id, start_at FROM archives WHERE vid = $1", vid
             )
         if row:
             await _discord.notify_status(
                 vid=vid,
                 title=row["title"],
                 channel_name=row["channel_name"],
+                channel_id=row["channel_id"],
                 start_at=row["start_at"],
                 status=status,
                 error_message=error_message,
